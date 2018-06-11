@@ -15,6 +15,7 @@ if (isset($_FILES['testfile']) && !empty($_FILES['testfile'])) {
     
     move_uploaded_file($tmpPath, $testsDir . $fileName);
     header('location: ./list.php');
+    exit();
 }
 ?>
 
