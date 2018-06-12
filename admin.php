@@ -1,6 +1,17 @@
 <?php 
 require_once('./config.php');
-require_once('./getFileList.php');
+require_once('./functions.php');
+session_start();
+
+if (!empty($_COOKIE['access']) && $_COOKIE['access'] === 'deny') {
+    http_response_code(403);
+    exit('Подождите часок, мы вас заблокировали, а затем попробуйте снова');
+}
+
+if (empty($_SESSION['userdata'])) {
+  http_response_code(403);
+  exit('В доступе отказано из-за авторизации');
+}
 
 if (isset($_FILES['testfile']) && !empty($_FILES['testfile'])) {
     $fileType = $_FILES['testfile']['type'];

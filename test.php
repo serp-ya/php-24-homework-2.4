@@ -1,13 +1,40 @@
 <?php
 require_once('./config.php');
+require_once('./functions.php');
+session_start();
+
+if (!empty($_COOKIE['access']) && $_COOKIE['access'] === 'deny') {
+    http_response_code(403);
+    exit('Подождите часок, мы вас заблокировали, а затем попробуйте снова');
+}
+
+if (empty($_SESSION['userdata'])) {
+  http_response_code(403);
+  exit('В доступе отказано из-за авторизации');
+}
 
 if (empty($_GET) && empty($_POST)) {
   exit('Не переданы параметры');
 }
 
-if (!empty($_GET) && (!isset($_GET['testid']) || empty($_GET['testid']))) {
-  exit('Передайте параметр testid');
+if (!empty($_GET) && !empty($_GET['delete'])) {
+  $deleteTestId = $_GET['delete'];
+  $fileToDelete = $testsDir . $deleteTestId . '.json';
+  $deleteResult;
+
+  if (file_exists($fileToDelete)) {
+    $deleteResult = unlink($fileToDelete);
+  }
   
+  if ($deleteResult) {
+    exit("Тест $deleteTestId удалён");
+  } else {
+    exit('Ошибка при удалении теста');
+  }
+}
+
+if (!empty($_GET) && empty($_GET['testid'])) {
+  exit('Передайте параметр testid');
 }
 
 if (!empty($_GET['testid'])) {
@@ -45,7 +72,7 @@ $testQuestionsArray = $testData['questions'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $sertificateTemplateUrl = __DIR__ . '\src\setificate-template.png';
-  $userName = $_POST['name'] ? $_POST['name'] : 'Unknown';
+  $userName = $_SESSION['userdata']['login'];
   $testsCount = count($testQuestionsArray);
   $correctTestsCount = count(array_filter($_POST, filterCorrect));
 
@@ -122,9 +149,6 @@ function filterCorrect($value) {
       </fieldset>
   <?php endforeach; ?>
 
-  <fieldset>
-    Ваше имя: <input name="name" type="text"><br />
-  </fieldset>
   <input type="submit" placeholder="Отправить"/>
 </form>
 
